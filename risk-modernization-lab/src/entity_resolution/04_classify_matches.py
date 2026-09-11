@@ -19,6 +19,7 @@ def classify(row):
     email = row["email_match"]
     address = row["address_match"]
     name = row["name_match"]
+    domain = row["email_domain_match"]
 
     # ------------------------------
     # AUTO MATCH
@@ -58,6 +59,17 @@ def classify(row):
     if email and name:
         return "REVIEW"
 
+    # Exact name + phone is strong evidence
+    if phone and name:
+        return "MATCH"
+
+
+
+# Exact address + same email domain + name
+    if address and domain and name:
+        return "MATCH"
+
+    
     # ------------------------------
     # TOO WEAK
     # ------------------------------

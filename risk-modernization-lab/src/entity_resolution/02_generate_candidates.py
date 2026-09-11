@@ -16,6 +16,7 @@ customers = pd.read_sql(
         phone_normalized,
         email_normalized,
         address_normalized,
+        email_domain,
         city,
         state
     FROM customer_identity_normalized
@@ -61,6 +62,13 @@ for _, group in customers[
     if len(group) > 1:
         add_pairs(group)
 
+# Exact normalized name
+for _, group in customers[
+    customers["name_normalized"].notna()
+].groupby("name_normalized"):
+
+    if len(group) > 1:
+        add_pairs(group)
 
 candidates = pd.DataFrame(
     candidate_pairs,

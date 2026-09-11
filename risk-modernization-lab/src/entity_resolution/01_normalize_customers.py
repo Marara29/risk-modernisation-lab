@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DB_PATH = ROOT / "database" / "risk_lab.db"
 
 
+
 def normalize_text(value):
     if pd.isna(value):
         return None
@@ -37,6 +38,16 @@ def normalize_email(value):
 
     return str(value).lower().strip()
 
+def extract_email_domain(value):
+    if pd.isna(value):
+        return None
+
+    value = str(value).lower().strip()
+
+    if "@" not in value:
+        return None
+
+    return value.split("@")[-1]
 
 def normalize_address(value):
     if pd.isna(value):
@@ -82,8 +93,12 @@ customers["email_normalized"] = (
 
 customers["address_normalized"] = (
     customers["address"].apply(normalize_address)
+
 )
 
+customers["email_domain"] = (
+    customers["email"].apply(extract_email_domain)
+)
 
 customers.to_sql(
     "customer_identity_normalized",
@@ -104,6 +119,8 @@ print(
             "phone_normalized",
             "address",
             "address_normalized",
+            "email_normalized",
+            "email_domain"
         ]
     ].head(20)
 )

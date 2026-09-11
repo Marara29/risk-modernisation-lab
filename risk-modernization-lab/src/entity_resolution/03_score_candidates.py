@@ -15,6 +15,7 @@ customers = pd.read_sql(
         phone_normalized,
         email_normalized,
         address_normalized,
+        email_domain,
         city,
         state
     FROM customer_identity_normalized
@@ -108,6 +109,15 @@ pairs["match_score"] = (
     + 1 * pairs["name_match"]
 )
 
+pairs["email_domain_match"] = (
+    pairs["email_domain_1"].notna()
+    &
+    (
+        pairs["email_domain_1"]
+        ==
+        pairs["email_domain_2"]
+    )
+).astype(int)
 
 output_cols = [
     "customer_record_id_1",
@@ -116,7 +126,9 @@ output_cols = [
     "email_match",
     "address_match",
     "name_match",
+    "email_domain_match",
     "match_score"
+    
 ]
 
 pairs[output_cols].to_sql(
