@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 db_path = ROOT / "database" / "risk_lab.db"
 raw_path = ROOT / "data" / "raw"
+schema_path = ROOT / "sql" / "schemas" / "001_raw_tables.sql"
 
 tables = [
     "customer_records",
@@ -18,25 +19,36 @@ tables = [
     "vendor_scores",
 ]
 
-conn = sqlite3.connect(db_path)
+with sqlite3.connect(db_path) as conn:
+    for table in tables:
+        conn.execute(f'DROP TABLE IF EXISTS "{table}"')
 
-for table in tables:
-    csv_path = raw_path / f"{table}.csv"
+    conn.executescript(schema_path.read_text())
 
-    print(f"Loading {csv_path.name} ...")
+    for table in tables:
+        csv_path = raw_path / f"{table}.csv"
 
-    df = pd.read_csv(csv_path)
+        print(f"Loading {csv_path.name} ...")
 
-    df.to_sql(
-        table,
-        conn,
-        if_exists="replace",
-        index=False
-    )
+        df = pd.read_csv(csv_path)
+        schema_columns = [
+            row[1] for row in conn.execute(f'PRAGMA table_info("{table}")')
+        ]
 
-    print(f"  loaded {len(df):,} rows")
+        if list(df.columns) != schema_columns:
+            raise ValueError(
+                f"{table}.csv columns do not match {schema_path.name}: "
+                f"expected {schema_columns}, received {list(df.columns)}"
+            )
 
-conn.close()
+        df.to_sql(
+            table,
+            conn,
+            if_exists="append",
+            index=False
+        )
+
+        print(f"  loaded {len(df):,} rows")
 
 print("\nDone.")
 print(f"Database created at: {db_path}")
