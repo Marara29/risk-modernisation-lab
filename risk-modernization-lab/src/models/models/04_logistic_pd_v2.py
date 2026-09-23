@@ -96,6 +96,28 @@ model = Pipeline(
 
 model.fit(X_train, y_train)
 
+# --------------------------------------------------
+# Save fitted model artifact for downstream scoring
+# --------------------------------------------------
+
+import joblib
+
+ARTIFACT_DIR = ROOT / "artifacts"
+ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+
+MODEL_ARTIFACT = ARTIFACT_DIR / "pd_model_v2.joblib"
+
+joblib.dump(
+    {
+        "model": model,
+        "features": features_v2,
+        "threshold": 0.20,
+    },
+    MODEL_ARTIFACT,
+)
+
+print(f"Saved model artifact to: {MODEL_ARTIFACT}")
+
 
 # --------------------------------------------------
 # Validation evaluation
